@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - ECommerce</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link th:href="@{/css/style.css}" href="/css/style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-shop"></i> ECommerce
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/user/home}">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/products}">Products</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cart}">
+                            <i class="bi bi-cart"></i> Cart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/orders}">
+                            <i class="bi bi-bag"></i> Orders
+                        </a>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person"></i> <span sec:authentication="name">User</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <form th:action="@{/logout}" method="post" class="d-inline">
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/orders}">Orders</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="'Order #' + ${order.id}">Order Details</li>
+            </ol>
+        </nav>
+
+        <!-- Alerts -->
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <!-- Order Header -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-0">Order #<span th:text="${order.id}">123</span></h2>
+                    <small class="text-muted">
+                        Placed on <span th:text="${#temporals.format(order.orderDate, 'MMMM dd, yyyy \'at\' HH:mm')}">January 01, 2024 at 10:30</span>
+                    </small>
+                </div>
+                <div class="text-end">
+                    <span class="badge fs-6 me-2"
+                          th:classappend="${order.status.name() == 'PENDING'} ? 'bg-warning text-dark' :
+                                         ${order.status.name() == 'CONFIRMED'} ? 'bg-info' :
+                                         ${order.status.name() == 'SHIPPED'} ? 'bg-primary' :
+                                         ${order.status.name() == 'DELIVERED'} ? 'bg-success' : 'bg-danger'"
+                          th:text="${order.status}">Status</span>
+                    <h3 class="mb-0 text-primary" th:text="'$' + ${order.totalAmount}">$0.00</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Order Items -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-bag"></i> Order Items</h5>
+                    </div>
+                    <div class="card-body">
+                        <div th:each="item, itemStat : ${order.orderItems}"
+                             th:class="${!itemStat.last} ? 'border-bottom pb-3 mb-3' : ''">
+                            <div class="row align-items-center">
+                                <div class="col-md-2">
+                                    <div class="bg-light d-flex align-items-center justify-content-center" style="height: 80px;">
+                                        <img th:if="${item.product.imageUrl != null and !item.product.imageUrl.isEmpty()}"
+                                             th:src="${item.product.imageUrl}"
+                                             th:alt="${item.product.name}"
+                                             class="img-fluid" style="max-height: 70px;">
+                                        <i th:if="${item.product.imageUrl == null or item.product.imageUrl.isEmpty()}"
+                                           class="bi bi-image text-muted" style="font-size: 1.5rem;"></i>
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <h6 class="mb-1" th:text="${item.product.name}">Product Name</h6>
+                                    <p class="text-muted mb-1 small" th:text="${item.product.description}">Product description</p>
+                                    <small class="text-muted">Unit Price: <span th:text="'$' + ${item.price}">$0.00</span></small>
+                                </div>
+                                <div class="col-md-2 text-center">
+                                    <span class="badge bg-secondary">Qty: <span th:text="${item.quantity}">1</span></span>
+                                </div>
+                                <div class="col-md-3 text-end">
+                                    <h6 class="mb-0" th:text="'$' + ${item.subtotal}">$0.00</h6>
+                                    <small class="text-muted" th:text="'(' + ${item.quantity} + ' x $' + ${item.price} + ')'">
+                                        (1 x $0.00)
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary & Actions -->
+            <div class="col-md-4">
+                <!-- Order Summary -->
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <h5><i class="bi bi-receipt"></i> Order Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Items (<span th:text="${order.orderItems.size()}">0</span>):</span>
+                            <span th:text="'$' + ${order.totalAmount}">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping:</span>
+                            <span class="text-success">Free</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Tax:</span>
+                            <span>$0.00</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total:</strong>
+                            <strong class="text-primary" th:text="'$' + ${order.totalAmount}">$0.00</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="bi bi-gear"></i> Order Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Cancel Order -->
+                        <div th:if="${order.status.name() == 'PENDING' or order.status.name() == 'CONFIRMED'}" class="mb-3">
+                            <form th:action="@{'/orders/' + ${order.id} + '/cancel'}" method="post">
+                                <button type="submit" class="btn btn-outline-danger w-100"
+                                        onclick="return confirm('Are you sure you want to cancel this order?')">
+                                    <i class="bi bi-x-circle"></i> Cancel Order
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Track Order (placeholder for future implementation) -->
+                        <div th:if="${order.status.name() == 'SHIPPED'}" class="mb-3">
+                            <button type="button" class="btn btn-outline-info w-100" disabled>
+                                <i class="bi bi-truck"></i> Track Package
+                            </button>
+                            <small class="text-muted d-block mt-1">Tracking feature coming soon</small>
+                        </div>
+
+                        <!-- Contact Support -->
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                                <i class="bi bi-chat-dots"></i> Contact Support
+                            </button>
+                            <small class="text-muted d-block mt-1">Support feature coming soon</small>
+                        </div>
+
+                        <!-- Order Status Information -->
+                        <div class="mt-3">
+                            <h6>Order Status Guide:</h6>
+                            <ul class="list-unstyled small text-muted">
+                                <li><span class="badge bg-warning text-dark me-1">PENDING</span> Order received, processing</li>
+                                <li><span class="badge bg-info me-1">CONFIRMED</span> Order confirmed, preparing</li>
+                                <li><span class="badge bg-primary me-1">SHIPPED</span> Order shipped</li>
+                                <li><span class="badge bg-success me-1">DELIVERED</span> Order delivered</li>
+                                <li><span class="badge bg-danger me-1">CANCELLED</span> Order cancelled</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back to Orders -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <a th:href="@{/orders}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to Orders
+                </a>
+                <a th:href="@{/products}" class="btn btn-primary ms-2">
+                    <i class="bi bi-bag"></i> Continue Shopping
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white text-center py-3 mt-5">
+        <div class="container">
+            <p>&copy; 2024 ECommerce Application. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/script.js}" src="/js/script.js"></script>
+</body>
+</html>

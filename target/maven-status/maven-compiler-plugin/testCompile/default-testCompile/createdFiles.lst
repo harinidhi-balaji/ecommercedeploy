@@ -1,0 +1,12 @@
+com/ecommerce/config/TestConfig.class
+com/ecommerce/EcommerceApplicationTest.class
+com/ecommerce/entity/UserTest.class
+com/ecommerce/service/UserServiceTest.class
+com/ecommerce/repository/ProductRepositoryTest.class
+com/ecommerce/repository/UserRepositoryTest.class
+com/ecommerce/controller/AuthControllerTest.class
+com/ecommerce/controller/WebIntegrationTest.class
+com/ecommerce/controller/ProductControllerTest.class
+com/ecommerce/service/ServiceIntegrationTest.class
+com/ecommerce/service/ProductServiceTest.class
+com/ecommerce/entity/ProductTest.class
